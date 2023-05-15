@@ -113,6 +113,7 @@ class BigQueryCredentials(Credentials):
     priority: Optional[Priority] = None
     maximum_bytes_billed: Optional[int] = None
     impersonate_service_account: Optional[str] = None
+    kms_key_name: Optional[str] = None
 
     job_retry_deadline_seconds: Optional[int] = None
     job_retries: Optional[int] = 1
@@ -180,6 +181,7 @@ class BigQueryCredentials(Credentials):
             "job_creation_timeout_seconds",
             "job_execution_timeout_seconds",
             "gcs_bucket",
+            "kms_key_name"
         )
 
     @classmethod
@@ -439,6 +441,10 @@ class BigQueryConnectionManager(BaseConnectionManager):
         maximum_bytes_billed = conn.credentials.maximum_bytes_billed
         if maximum_bytes_billed is not None and maximum_bytes_billed != 0:
             job_params["maximum_bytes_billed"] = maximum_bytes_billed
+
+        kms_key_name = conn.credentials.kms_key_name
+        if kms_key_name is not None:
+            job_params["destination_encryption_configuration"] = google.cloud.bigquery.EncryptionConfiguration(kms_key_name=kms_key_name)
 
         job_creation_timeout = self.get_job_creation_timeout_seconds(conn)
         job_execution_timeout = self.get_job_execution_timeout_seconds(conn)
